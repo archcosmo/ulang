@@ -1,14 +1,18 @@
 (* Types of the language *)
-type Type =  UInt of int | UString of string | ULang;;
+type uMember =  UMember of string;;
+type uSet = UEmpty | USingleton of uMember | UTuple of uMember list;;
+
 
 (* Grammar of the language *)
-type Term =
-    UNum of int
-  | UVar of string
-  | USet of ULang
-  | UUnion of USet * USet
-  | UIntersect of USet * USet
-  | UComplement of USet
-  | UDifference of USet * USet
-
+type uTerm =
+  | USet of uSet
+  | UUnion of uTerm * uTerm
+  | UIntersect of uTerm * uTerm
+  | UComplement of uTerm
+  | UDifference of uTerm * uTerm
+  | UConcatenation of uTerm * uTerm
+  | UKleene of uTerm
   ;;
+
+let (sets : uSet list) = [];;
+let (k : int ref) = ref 0;;
