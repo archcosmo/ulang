@@ -30,10 +30,12 @@ expr: set                     { USet ($1) }
 
 set:
   LBRACE RBRACE            { UEmpty }
-  LBRACE setmembers RBRACE { UTuple ($2) }
+  | LBRACE setmembers RBRACE { UTuple ($2) }
 ;
 
 setmembers:
-  WORD { [UMember($1)] }
+  EMPTYWORD { [UEmptyWord] }
+  | WORD { [UMember($1)] }
+  | EMPTYWORD COMMA setmembers { UEmptyWord::$3 }
   | WORD COMMA setmembers { UMember($1)::$3 }
 ;

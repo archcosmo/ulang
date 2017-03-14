@@ -2,7 +2,7 @@ exception InvalidSet;;
 
 
 (* Types of the language *)
-type uMember =  UMember of string;;
+type uMember =  UEmptyWord | UMember of string;;
 type uSet = UEmpty | UTuple of uMember list;;
 
 (* Grammar of the language *)
