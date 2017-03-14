@@ -5,10 +5,11 @@
 %token <int> INT
 %token <string> IDENT
 %token LBRACE RBRACE FOLLOWEDBY
-%token EMPTYWORD KLEENSTAR
+%token EMPTYWORD KLEENESTAR
 %token EOF
-%left KLEENSTAR     /* lowest precedence */
-%left FOLLOWEDBY      /* highest precedence */
+
+%left UNION INTERSECT DIFFERENCE CONCATENATION /* lowest precedence */
+%nonassoc  KLEENSTAR COMPLEMENT /* highest precedence */
 
 %start parser_main             /* the entry point */
 

@@ -9,7 +9,14 @@ rule lexer_main = parse
     | ['a'-'z']+ as lxm { IDENT(lxm) }
     | '{'      { LBRACE }
     | '}'      { RBRACE }
-    | '*'      { KLEENSTAR }
+
+    | '*'      { KLEENESTAR }
+    | 'u'      { UNION }
+    | 'n'      { INTERSECT }
+    | '.'      { CONCATENATION }
+    | '/'      { DIFFERENCE }
+    | '\''     { COMPLEMENT }
+
     | ':'      { EMPTYWORD }
     | eof      { EOF }
 (*
