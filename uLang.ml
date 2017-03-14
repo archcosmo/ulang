@@ -56,7 +56,14 @@ let rec difference l1 l2 =
     | hd::tl when not (in_list hd l2) ->  hd::difference tl l2
     | hd::tl                          ->  difference tl l2;;
 
- let concatenation l1 l2 = ;;
+(* how to handle EMPTYWORD ?? *)
+ let rec concatenation l1 l2 =
+  match l1 with
+    | [] -> l2
+    | hd:tl
+    ;;
+
+
  let kleenestar l1 = ;;
  let complement l1 = ;;
 
@@ -69,6 +76,21 @@ let rec eval e = match e with
                         (match (v1,v2) with
                           | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(union n m))
                           | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
-                          | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(m))
-                          | _ -> raise InvalidSet
-                        )
+                          | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                          | _ -> raise InvalidSet)
+
+  | UIntersect (s1, s2) -> let v1 = eval s1 in
+                           let v2 = eval s2 in
+                            (match (v1,v2) with
+                              | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(intersect n m))
+                              | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
+                              | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                              | _ -> raise InvalidSet)
+
+  | UDifference (s1, s2) -> let v1 = eval s1 in
+                            let v2 = eval s2 in
+                              (match (v1,v2) with
+                                | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(difference n m))
+                                | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
+                                | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                                | _ -> raise InvalidSet)
