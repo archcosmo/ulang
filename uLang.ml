@@ -56,11 +56,20 @@ let rec difference l1 l2 =
     | hd::tl when not (in_list hd l2) ->  hd::difference tl l2
     | hd::tl                          ->  difference tl l2;;
 
+let rec prefix w l =
+  match w with
+  | UEmptyWord -> l
+  | _ -> (match l with
+          | [] -> []
+          | UEmptyWord::tl -> w::(prefix w tl)
+          | UMember(x)::tl -> (String.concat "" [w;x])::(prefix w tl)
+          );;
+
 (* how to handle EMPTYWORD ?? *)
  let rec concatenation l1 l2 =
   match l1 with
-    | [] -> l2
-    | hd:tl
+    | [] -> []
+    | hd::tl -> (prefix hd l2)::(concatenation tl l2)
     ;;
 
 
@@ -83,14 +92,22 @@ let rec eval e = match e with
                            let v2 = eval s2 in
                             (match (v1,v2) with
                               | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(intersect n m))
-                              | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
-                              | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                              | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
+                              | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
                               | _ -> raise InvalidSet)
 
   | UDifference (s1, s2) -> let v1 = eval s1 in
                             let v2 = eval s2 in
                               (match (v1,v2) with
                                 | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(difference n m))
-                                | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
+                                | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                                 | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
                                 | _ -> raise InvalidSet)
+
+  | UConcatenation (s1, s2) -> let v1 = eval s1 in
+                               let v2 = eval s2 in
+                                (match (v1,v2) with
+                                  | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(concatenation n m))
+                                  | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
+                                  | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
+                                  | _ -> raise InvalidSet)
