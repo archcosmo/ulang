@@ -1,4 +1,5 @@
 exception InvalidSet;;
+exception NonBaseTypeResult;;
 
 
 (* Types of the language *)
@@ -17,7 +18,7 @@ type uTerm =
   | UKleene of uTerm
   ;;
 
-let (sets : USet list) = [];;
+let (sets : uTerm list) = [];;
 let (k : int ref) = ref 0;;
 
 
@@ -28,7 +29,7 @@ let (k : int ref) = ref 0;;
 
 let rec get_nth = function
   |[], _ -> raise (Failure "get_nth")
-  |_, n when n < 0 -> raise (Invalid_Argument "get_nth")
+  |_, n when n < 0 -> raise (Failure "get_nth")
   | x::_, 0 -> x
   | x::xs, n -> get_nth(xs, n-1);;
 
@@ -56,25 +57,25 @@ let rec difference l1 l2 =
     | hd::tl when not (in_list hd l2) ->  hd::difference tl l2
     | hd::tl                          ->  difference tl l2;;
 
-let rec prefix w l =
-  match w with
+let rec prefix m l =
+  match m with
   | UEmptyWord -> l
-  | _ -> (match l with
+  | UMember(w) -> (match l with
           | [] -> []
-          | UEmptyWord::tl -> w::(prefix w tl)
-          | UMember(x)::tl -> (String.concat "" [w;x])::(prefix w tl)
+          | UEmptyWord::tl -> UMember(w)::(prefix m tl)
+          | UMember(x)::tl -> UMember(String.concat "" [w;x])::(prefix m tl)
           );;
 
 (* how to handle EMPTYWORD ?? *)
  let rec concatenation l1 l2 =
   match l1 with
     | [] -> []
-    | hd::tl -> (prefix hd l2)::(concatenation tl l2)
+    | hd::tl -> List.append (prefix hd l2) (concatenation tl l2)
     ;;
 
 
- let kleenestar l1 = ;;
- let complement l1 = ;;
+ (* let kleenestar l1 = ;;
+ let complement l1 = ;; *)
 
 (* Eval Function *)
 let rec eval e = match e with
@@ -110,4 +111,14 @@ let rec eval e = match e with
                                   | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(concatenation n m))
                                   | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                                   | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
-                                  | _ -> raise InvalidSet)
+                                  | _ -> raise InvalidSet);;
+
+let rec print_members l = match l with
+  | [] -> ()
+  | hd::[] -> print_string hd
+  | hd::tl -> print_string hd; print_string ", "; print_members tl
+
+let print_res res = match res with
+  | (USet UEmpty) -> print_string "{}"
+  | (USet UTuple(l)) -> print_string "{"; print_members; print_string "}"
+  | _ -> raise NonBaseTypeResult;;

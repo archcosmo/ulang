@@ -1,0 +1,10 @@
+ULang.cmi :
+parser.cmi : ULang.cmi
+ULang.cmo : ULang.cmi
+ULang.cmx : ULang.cmi
+lexer.cmo : parser.cmi
+lexer.cmx : parser.cmx
+main.cmo : ULang.cmi parser.cmi lexer.cmo
+main.cmx : ULang.cmx parser.cmx lexer.cmx
+parser.cmo : ULang.cmi parser.cmi
+parser.cmx : ULang.cmx parser.cmi

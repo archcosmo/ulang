@@ -1,11 +1,17 @@
 /* File parser.mly */
 %{
-    open Toy
+    open ULang
 %}
 %token <int> INT
 %token <int> IN
 %token <string> WORD
-%token LBRACE RBRACE
+%token LBRACE COMMA RBRACE
+%token KLEENESTAR
+%token UNION
+%token INTERSECT
+%token CONCATENATION
+%token DIFFERENCE
+%token COMPLEMENT
 %token EMPTYWORD
 %token EOF
 
@@ -13,7 +19,7 @@
 %nonassoc  KLEENESTAR COMPLEMENT /* highest precedence */
 
 %start parser_main             /* the entry point */
-
+%type <ULang.uTerm> parser_main
 %%
 parser_main: expr EOF { $1 }
 ;
