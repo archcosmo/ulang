@@ -3,30 +3,37 @@
     open Toy
 %}
 %token <int> INT
+%token <int> IN
 %token <string> WORD
 %token LBRACE RBRACE
 %token EMPTYWORD
 %token EOF
 
 %left UNION INTERSECT DIFFERENCE CONCATENATION /* lowest precedence */
-%nonassoc  KLEENSTAR COMPLEMENT /* highest precedence */
+%nonassoc  KLEENESTAR COMPLEMENT /* highest precedence */
 
 %start parser_main             /* the entry point */
 
 %%
 parser_main: expr EOF { $1 }
 ;
-type_spec: SET { ?? }
-    | BTYPE     { ToyBool }
-    | type_spec FUNTYPE type_spec { ToyFun ($1,$3) }
-    | LPAREN type_spec RPAREN {$2}
-;
 
-expr:
- | LBRACE set RBRACE { UTuple ($2) }
+expr: set                     { USet ($1) }
+  | IN                        { UInSet ($1) }
+  | expr UNION expr           { UUnion ($1, $3) }
+  | expr INTERSECT expr       { UIntersect ($1, $3) }
+  | expr CONCATENATION expr   { UConcatenation ($1, $3) }
+  | expr KLEENESTAR           { UKleene ($1) }
+  | expr DIFFERENCE expr      { UDifference ($1, $3) }
+  | expr COMPLEMENT           { UComplement ($1) }
 ;
 
 set:
-  | WORD { UMember($1) }
-  | WORD COMMA set { UMember($1)::$3 }
+  LBRACE RBRACE            { UEmpty }
+  LBRACE setmembers RBRACE { UTuple ($2) }
+;
+
+setmembers:
+  WORD { [UMember($1)] }
+  | WORD COMMA setmembers { UMember($1)::$3 }
 ;
