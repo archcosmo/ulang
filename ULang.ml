@@ -115,10 +115,12 @@ let rec eval e = match e with
 
 let rec print_members l = match l with
   | [] -> ()
-  | hd::[] -> print_string hd
-  | hd::tl -> print_string hd; print_string ", "; print_members tl
+  | UEmptyWord::[] -> print_string ":"
+  | UEmptyWord::tl -> print_string ":"; print_string ", "; print_members tl
+  | UMember(hd)::[] -> print_string hd
+  | UMember(hd)::tl -> print_string hd; print_string ", "; print_members tl
 
 let print_res res = match res with
   | (USet UEmpty) -> print_string "{}"
-  | (USet UTuple(l)) -> print_string "{"; print_members; print_string "}"
+  | (USet UTuple(l)) -> print_string "{"; print_members l; print_string "}"
   | _ -> raise NonBaseTypeResult;;
