@@ -102,11 +102,11 @@ let rec difference l1 l2 =
 
   let order s =
     let comp s1 s2 = match s1, s2 with
-    | UEmptyWord, UEmptyWord -> 0
+    | UEmptyWord, UEmptyWord ->  0
     | UEmptyWord, UMember(y) -> -1
-    | UMember(x), UEmptyWord -> 1
-    | UMember(x), UMember(y) when x=y -> 0
-    | UMember(x), UMember(y) when x>y -> 1
+    | UMember(x), UEmptyWord ->  1
+    | UMember(x), UMember(y) when x=y ->  0
+    | UMember(x), UMember(y) when x>y ->  1
     | UMember(x), UMember(y)          -> -1
     in
     match s with
@@ -114,10 +114,16 @@ let rec difference l1 l2 =
       | USet(UEmpty)    -> s
       | _ -> raise InvalidSet;;
 
-(* TODO *)
-  let limit s = match s with
-  | _ when !k > 0 -> s
-  | _ -> s;;
+  let limit s =
+    let rec list_limit l n =
+      match l,n with
+      | [], _              -> []
+      | hd::tl, x when x>0 -> hd::(list_limit tl (x-1))
+      | _, _               -> []
+    in match s with
+    | USet(UTuple(x)) -> USet(UTuple(list_limit x !k))
+    | USet(UEmpty)    -> s
+    | _ -> raise InvalidSet;;
 
 
 (* Eval Function *)
