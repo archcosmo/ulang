@@ -23,6 +23,7 @@ setup.log
 # lexer and parser specific
 lexer.ml
 parser.ml
+parser.mli
 parser.output
 
 main
