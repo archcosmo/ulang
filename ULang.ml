@@ -92,49 +92,72 @@ let rec difference l1 l2 =
     | []                              -> []
     | hd::[]                          -> [hd]
     | hd::tl when not (in_list hd tl) -> hd::(remove_duplicate tl)
-    | hd::tl                          -> rem_dup tl
-
+    | hd::tl                          -> remove_duplicate tl
   in
   match e with
     | USet(UTuple(x)) -> USet(UTuple(remove_duplicate x))
     | USet(UEmpty)    -> e
     | _ -> raise InvalidSet;;
 
+
+  let order s =
+    let comp s1 s2 = match s1, s2 with
+    | UEmptyWord, UEmptyWord -> 0
+    | UEmptyWord, UMember(y) -> -1
+    | UMember(x), UEmptyWord -> 1
+    | UMember(x), UMember(y) when x=y -> 0
+    | UMember(x), UMember(y) when x>y -> 1
+    | UMember(x), UMember(y)          -> -1
+    in
+    match s with
+      | USet(UTuple(x)) -> USet(UTuple(List.sort comp x))
+      | USet(UEmpty)    -> s
+      | _ -> raise InvalidSet;;
+
+(* TODO *)
+  let limit s = match s with
+  | _ when !k > 0 -> s
+  | _ -> s;;
+
+
 (* Eval Function *)
-let rec eval e = match e with
-  | USet (x) -> setify e
-  | UInSet (x) -> eval (get_nth (!sets, x-1))
-  | UUnion (s1, s2) -> let v1 = eval s1 in
-                       let v2 = eval s2 in
+let rec evalBig e = match e with
+  | USet (x) -> order (setify e)
+  | UInSet (x) -> evalBig (get_nth (!sets, x-1))
+  | UUnion (s1, s2) -> let v1 = evalBig s1 in
+                       let v2 = evalBig s2 in
                         (match (v1,v2) with
                           | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(union n m))
                           | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
                           | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
                           | _ -> raise InvalidSet)
 
-  | UIntersect (s1, s2) -> let v1 = eval s1 in
-                           let v2 = eval s2 in
+  | UIntersect (s1, s2) -> let v1 = evalBig s1 in
+                           let v2 = evalBig s2 in
                             (match (v1,v2) with
                               | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(intersect n m))
                               | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                               | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
                               | _ -> raise InvalidSet)
 
-  | UDifference (s1, s2) -> let v1 = eval s1 in
-                            let v2 = eval s2 in
+  | UDifference (s1, s2) -> let v1 = evalBig s1 in
+                            let v2 = evalBig s2 in
                               (match (v1,v2) with
                                 | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(difference n m))
                                 | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                                 | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
                                 | _ -> raise InvalidSet)
 
-  | UConcatenation (s1, s2) -> let v1 = eval s1 in
-                               let v2 = eval s2 in
+  | UConcatenation (s1, s2) -> let v1 = evalBig s1 in
+                               let v2 = evalBig s2 in
                                 (match (v1,v2) with
                                   | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(concatenation n m))
                                   | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                                   | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
                                   | _ -> raise InvalidSet);;
+
+let eval e = limit (evalBig e);;
+
 
 let rec print_members l = match l with
   | [] -> ()
