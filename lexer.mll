@@ -22,6 +22,8 @@ and lexer_main = parse
     | '}'      { RBRACE }
     | ','      { COMMA }
 
+    | '('      { LPAREN }
+    | ')'      { RPAREN }
     | '*'      { KLEENESTAR }
     | 'u'      { UNION }
     | 'n'      { INTERSECT }

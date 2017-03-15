@@ -6,6 +6,7 @@
 %token <int> IN
 %token <string> WORD
 %token LBRACE COMMA RBRACE
+%token LPAREN RPAREN
 %token KLEENESTAR
 %token UNION
 %token INTERSECT
@@ -33,12 +34,13 @@ parser_inputs:
 
 setlist:
   set NEWLINE           { [USet($1)] }
-  | set setlist {USet($1)::$2}
+  | set NEWLINE setlist {USet($1)::$3}
 ;
 
 expr:
     set                         { USet ($1) }
   | IN                          { UInSet ($1) }
+  | LPAREN expr RPAREN          { $2 }
   | expr UNION expr             { UUnion ($1, $3) }
   | expr INTERSECT expr         { UIntersect ($1, $3) }
   | expr CONCATENATION expr     { UConcatenation ($1, $3) }
