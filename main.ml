@@ -22,15 +22,16 @@ let setProg p = arg := open_in p in
 let usage = "Usage: ./main PROGRAM_FILE" in
 parse [] setProg usage ;
 
+let parsedProg = parseProgram !arg in
+(* let () = print_string "Program Parsed" ; print_newline() in *)
+
 let parsedInputs = parseInputs !inputs in
-let () = print_string "Inputs Parsed" ; print_newline() in
+(* let () = print_string "Inputs Parsed" ; print_newline() in *)
 
 let () = ULang.evalInputs parsedInputs in
-
-let parsedProg = parseProgram !arg in
-let () = print_string "Program Parsed" ; print_newline() in
-(* let _ = typeProg parsedProg in
-let () = print_string "Program Type Checked" ; print_newline() in *)
 let result = ULang.eval parsedProg in
-let () = print_string "Program Evaluated to ==> " ;  print_res result ; print_newline() in
+
+(* let () = print_string "Program Evaluated to ==> " ;  print_res result ; print_newline() in *)
+let () = print_res result; print_newline() in
+
 flush stdout
