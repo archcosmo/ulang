@@ -13,15 +13,27 @@
 %token DIFFERENCE
 %token COMPLEMENT
 %token EMPTYWORD
+%token NEWLINE
 %token EOF
 
 %left UNION INTERSECT DIFFERENCE CONCATENATION /* lowest precedence */
 %nonassoc  KLEENESTAR COMPLEMENT /* highest precedence */
 
-%start parser_main             /* the entry point */
+%start parser_main  parser_inputs          /* the entry point */
 %type <ULang.uTerm> parser_main
+%type <ULang.uTerm list * int>  parser_inputs
 %%
-parser_main: expr EOF { $1 }
+parser_main:
+  expr EOF { $1 }
+;
+
+parser_inputs:
+  setlist INT NEWLINE EOF { ($1, $2) }
+;
+
+setlist:
+  set NEWLINE           { [USet($1)] }
+  | set setlist {USet($1)::$2}
 ;
 
 expr:

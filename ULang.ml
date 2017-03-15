@@ -18,7 +18,7 @@ type uTerm =
   | UKleene of uTerm
   ;;
 
-let (sets : uTerm list) = [USet(UTuple([UEmptyWord;UMember("a")]))];;
+let (sets : uTerm list ref) = ref [];;
 let (k : int ref) = ref 0;;
 
 
@@ -26,6 +26,17 @@ let (k : int ref) = ref 0;;
 (* let rec typeOf e = match e with
   USet () *)
 
+let evalInputs inp =
+  let rec addInSets = function
+    | [] -> ()
+    | USet (x)::tl -> sets:= !sets@[USet (x)]; addInSets tl
+    | _ -> raise InvalidSet
+  in
+
+  let (inpSets, num) = inp in
+    k := num;
+    addInSets inpSets
+;;
 
 let rec get_nth = function
   | [], _           -> raise (Failure "get_nth : index is greater than list length")
@@ -79,7 +90,7 @@ let rec difference l1 l2 =
 (* Eval Function *)
 let rec eval e = match e with
   | USet (x) -> e
-  | UInSet (x) -> get_nth (sets, x-1)
+  | UInSet (x) -> get_nth (!sets, x-1)
   | UUnion (s1, s2) -> let v1 = eval s1 in
                        let v2 = eval s2 in
                         (match (v1,v2) with
