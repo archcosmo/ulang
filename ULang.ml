@@ -87,10 +87,23 @@ let rec difference l1 l2 =
  (* let kleenestar l1 = ;;
  let complement l1 = ;; *)
 
+ let setify e =
+  let rec remove_duplicate = function
+    | []                              -> []
+    | hd::[]                          -> [hd]
+    | hd::tl when not (in_list hd tl) -> hd::(remove_duplicate tl)
+    | hd::tl                          -> rem_dup tl
+
+  in
+  match e with
+    | USet(UTuple(x)) -> USet(UTuple(remove_duplicate x))
+    | USet(UEmpty)    -> e
+    | _ -> raise InvalidSet;;
+
 (* Eval Function *)
 let rec eval e = match e with
-  | USet (x) -> e
-  | UInSet (x) -> get_nth (!sets, x-1)
+  | USet (x) -> setify e
+  | UInSet (x) -> eval (get_nth (!sets, x-1))
   | UUnion (s1, s2) -> let v1 = eval s1 in
                        let v2 = eval s2 in
                         (match (v1,v2) with
