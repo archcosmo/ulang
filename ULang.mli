@@ -13,6 +13,6 @@ type uTerm =
   | UConcatenation of uTerm * uTerm
   | UKleene of uTerm
 
-
+val evalInputs : uTerm list * int -> unit
 val eval : uTerm -> uTerm
 val print_res : uTerm -> unit
