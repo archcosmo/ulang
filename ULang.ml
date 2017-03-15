@@ -18,7 +18,7 @@ type uTerm =
   | UKleene of uTerm
   ;;
 
-let (sets : uTerm list) = [];;
+let (sets : uTerm list) = [USet(UTuple([UEmptyWord;UMember("a")]))];;
 let (k : int ref) = ref 0;;
 
 
@@ -28,10 +28,10 @@ let (k : int ref) = ref 0;;
 
 
 let rec get_nth = function
-  |[], _ -> raise (Failure "get_nth")
-  |_, n when n < 0 -> raise (Failure "get_nth")
-  | x::_, 0 -> x
-  | x::xs, n -> get_nth(xs, n-1);;
+  | [], _           -> raise (Failure "get_nth : index is greater than list length")
+  | _, n when n < 0 -> raise (Failure "get_nth : negative index")
+  | x::_, 0         -> x
+  | x::xs, n        -> get_nth(xs, n-1);;
 
 let in_list x l =
   let pred = function
@@ -57,21 +57,20 @@ let rec difference l1 l2 =
     | hd::tl when not (in_list hd l2) ->  hd::difference tl l2
     | hd::tl                          ->  difference tl l2;;
 
-let rec prefix m l =
-  match m with
-  | UEmptyWord -> l
-  | UMember(w) -> (match l with
-          | [] -> []
-          | UEmptyWord::tl -> UMember(w)::(prefix m tl)
-          | UMember(x)::tl -> UMember(String.concat "" [w;x])::(prefix m tl)
-          );;
 
-(* how to handle EMPTYWORD ?? *)
  let rec concatenation l1 l2 =
-  match l1 with
+  let rec prefix m l =
+    match m with
+    | UEmptyWord -> l
+    | UMember(w) -> (match l with
+            | [] -> []
+            | UEmptyWord::tl -> UMember(w)::(prefix m tl)
+            | UMember(x)::tl -> UMember(String.concat "" [w;x])::(prefix m tl)
+            )
+  in match l1 with
     | [] -> []
     | hd::tl -> List.append (prefix hd l2) (concatenation tl l2)
-    ;;
+  ;;
 
 
  (* let kleenestar l1 = ;;
@@ -80,7 +79,7 @@ let rec prefix m l =
 (* Eval Function *)
 let rec eval e = match e with
   | USet (x) -> e
-  | UInSet (x) -> get_nth (sets, x)
+  | UInSet (x) -> get_nth (sets, x-1)
   | UUnion (s1, s2) -> let v1 = eval s1 in
                        let v2 = eval s2 in
                         (match (v1,v2) with
