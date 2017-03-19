@@ -32,6 +32,11 @@ let () = ULang.evalInputs parsedInputs in
 let result = ULang.eval parsedProg in
 
 (* let () = print_string "Program Evaluated to ==> " ;  print_res result ; print_newline() in *)
-let () = print_res result; print_newline() in
+let rec print_results res =
+  match res with
+  | [] -> ()
+  | hd::tl  -> ULang.print_res hd; print_newline(); print_results tl in
+
+print_results result;
 
 flush stdout

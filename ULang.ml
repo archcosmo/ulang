@@ -16,6 +16,7 @@ type uTerm =
   | UDifference of uTerm * uTerm
   | UConcatenation of uTerm * uTerm
   | UKleene of uTerm
+  | UKleeneLimited of uTerm * int
   ;;
 
 let (sets : uTerm list ref) = ref [];;
@@ -171,6 +172,22 @@ let rec difference l1 l2 =
     | USet(UTuple(x)) -> USet(UTuple(build_kleene (set_to_kleeneable x) 2000 []))
     | _ -> raise InvalidSet;;
 
+  let kleene_limit s i =
+
+    let rec build_kleene l n acc =
+      match n with
+      | 0 -> acc
+      | 1 -> UEmptyWord::acc
+      | _ -> build_kleene l (n-1) ((UMember (kleenefy l (n-1)))::acc)
+    in match s with
+    | USet(UEmpty) when i > 0 -> USet(UTuple([UEmptyWord]))
+    | USet(UTuple(x)) ->
+      let sanitated = (set_to_kleeneable x) in
+      let c = List.length sanitated in
+      let count = ((1 - (pow c (i + 1))) / (1 - c)) in
+    USet(UTuple(build_kleene sanitated count []))
+    | _ -> raise InvalidSet;;
+
 (* Eval Function *)
 let rec evalBig e = match e with
   | USet (x) -> order (setify e)
@@ -207,9 +224,14 @@ let rec evalBig e = match e with
                                   | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
                                   | _ -> raise InvalidSet)
 
-  | UKleene (x) -> kleene (evalBig x);;
+  | UKleene (x) -> kleene (evalBig x)
+  | UKleeneLimited (s, i) -> kleene_limit (evalBig s) i
+;;
 
-let eval e = limit (order (evalBig e));;
+let rec eval e =
+  match e with
+  | [] -> []
+  | hd::tl -> (limit (order (evalBig hd)))::(eval tl);;
 
 
 let rec print_members l = match l with

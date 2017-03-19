@@ -12,7 +12,8 @@ type uTerm =
   | UDifference of uTerm * uTerm
   | UConcatenation of uTerm * uTerm
   | UKleene of uTerm
+  | UKleeneLimited of uTerm * int
 
 val evalInputs : uTerm list * int -> unit
-val eval : uTerm -> uTerm
+val eval : uTerm list -> uTerm list
 val print_res : uTerm -> unit
