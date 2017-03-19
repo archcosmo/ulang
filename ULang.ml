@@ -38,6 +38,14 @@ let evalInputs inp =
     addInSets inpSets
 ;;
 
+let pow x n =
+  let rec pow_rec acc n =
+    match n with
+    | 0 -> 1
+    | 1 -> acc
+    | _ -> (pow_rec (x * acc) (n-1))
+  in pow_rec x n;;
+
 let rec get_nth = function
   | [], _           -> raise (Failure "get_nth : index is greater than list length")
   | _, n when n < 0 -> raise (Failure "get_nth : negative index")
@@ -125,6 +133,43 @@ let rec difference l1 l2 =
     | USet(UEmpty)    -> s
     | _ -> raise InvalidSet;;
 
+  let set_to_kleeneable s =
+    let rs = List.rev s in
+    let rec stk_rec s acc =
+      match s with
+      | [] -> acc
+      | UEmptyWord::tl -> stk_rec tl acc
+      | UMember(x)::tl -> stk_rec tl (x::acc)
+    in stk_rec rs [];;
+
+  let kleenefy s i =
+    let c = List.length s in
+      match c with
+      | 1 -> let rec build_member j acc =
+              match j with
+              | 0 -> acc
+              | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, 0))])
+              in build_member (i) ""
+      | _ -> let fc = float_of_int c in
+             let fi = float_of_int i in
+             let n = int_of_float(floor ((log (1. -. fi +. (fi *. fc))) /. (log fc))) in
+             let m = i - ((1-(pow c n)) / (1-c)) in
+              let rec build_member j acc =
+                match j with
+                | -1 -> acc
+                | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, ((m/(pow c j)) mod c)))])
+              in build_member (n-1) "";;
+
+  let kleene s =
+    let rec build_kleene l n acc =
+      match n with
+      | 0 -> acc
+      | 1 -> UEmptyWord::acc
+      | _ -> build_kleene l (n-1) ((UMember (kleenefy l (n-1)))::acc)
+    in match s with
+    | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
+    | USet(UTuple(x)) -> USet(UTuple(build_kleene (set_to_kleeneable x) 2000 []))
+    | _ -> raise InvalidSet;;
 
 (* Eval Function *)
 let rec evalBig e = match e with
@@ -160,9 +205,11 @@ let rec evalBig e = match e with
                                   | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(concatenation n m))
                                   | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
                                   | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
-                                  | _ -> raise InvalidSet);;
+                                  | _ -> raise InvalidSet)
 
-let eval e = limit (evalBig e);;
+  | UKleene (x) -> kleene (evalBig x);;
+
+let eval e = limit (order (evalBig e));;
 
 
 let rec print_members l = match l with
