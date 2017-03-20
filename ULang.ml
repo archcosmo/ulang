@@ -159,7 +159,7 @@ let limit_kleene s i =
           let sanitated = set_to_kleeneable l in
           let c = List.length sanitated in
             match c with
-            | 1 -> kleene s 3000
+            | 1 -> kleene s 50
             | _ -> (
               let fc = float_of_int c in
               let n = int_of_float(floor ((log (1. -. 3000. +. (3000. *. fc))) /. (log fc))) in
