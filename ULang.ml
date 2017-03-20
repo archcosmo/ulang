@@ -120,17 +120,28 @@ let rec difference l1 l2 =
     | hd::tl -> List.append (prefix hd l2) (concatenation tl l2)
   ;;
 
-
+  let rec kleenestar acc l i =
+    match i with
+    |0 -> acc
+    |x -> kleenestar (union acc (concatenation acc l)) l (x-1);;
 
     let kleene s i =
-      let rec kleenestar acc l i =
-        match i with
-        |0 -> acc
-        |x -> kleenestar (union acc (concatenation acc l)) l (x-1)
-      in match s with
+       match s with
         | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
         | USet(UTuple(l)) -> USet(UTuple(kleenestar [UEmptyWord] l i))
         | _ -> raise InvalidSet;;
+
+let limit_kleene s i =
+  let length_limit l len =
+    let pred s =
+      match s with
+        UEmptyWord -> 0 = len
+      | UMember(x) -> (String.length x) = len
+    in List.filter pred l
+  in match s with
+    | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
+    | USet(UTuple(l)) -> USet(UTuple(length_limit(kleenestar [UEmptyWord] l i)))
+    | _ -> raise InvalidSet;;
 
 
  let setify e =
