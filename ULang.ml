@@ -143,23 +143,23 @@ let rec difference l1 l2 =
       | UMember(x)::tl -> stk_rec tl (x::acc)
     in stk_rec rs [];;
 
-  let kleenefy s i =
-    let c = List.length s in
-      match c with
-      | 1 -> let rec build_member j acc =
-              match j with
-              | 0 -> acc
-              | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, 0))])
-              in build_member (i) ""
-      | _ -> let fc = float_of_int c in
-             let fi = float_of_int i in
-             let n = int_of_float(floor ((log (1. -. fi +. (fi *. fc))) /. (log fc))) in
-             let m = i - ((1-(pow c n)) / (1-c)) in
-              let rec build_member j acc =
+    let kleenefy s i =
+      let c = List.length s in
+        match c with
+        | 1 -> let rec build_member j acc =
                 match j with
-                | -1 -> acc
-                | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, ((m/(pow c j)) mod c)))])
-              in build_member (n-1) "";;
+                | 0 -> acc
+                | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, 0))])
+                in build_member (i) ""
+        | _ -> let fc = float_of_int c in
+               let fi = float_of_int i in
+               let n = (int_of_float (log (1. -. fi +. (fi *. fc)))) / (int_of_float (log fc)) in
+               let m = i - ((1-(pow c n)) / (1-c)) in
+                let rec build_member j acc =
+                  match j with
+                  | -1 -> acc
+                  | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, ((m/(pow c j)) mod c)))])
+                in build_member (n-1) "";;
 
   let kleene s =
     let rec build_kleene l n acc =
@@ -182,50 +182,53 @@ let rec difference l1 l2 =
     in match s with
     | USet(UEmpty) when i > 0 -> USet(UTuple([UEmptyWord]))
     | USet(UTuple(x)) ->
-      let sanitated = (set_to_kleeneable x) in
+      (let sanitated = (set_to_kleeneable x) in
       let c = List.length sanitated in
-      let count = ((1 - (pow c (i + 1))) / (1 - c)) in
-    USet(UTuple(build_kleene sanitated count []))
+        match c with
+        | 1 -> USet(UTuple(build_kleene sanitated (i+1) []))
+        | _ -> let count = ((1 - (pow c (i + 1))) / (1 - c)) in
+          USet(UTuple(build_kleene sanitated count [])))
     | _ -> raise InvalidSet;;
 
 (* Eval Function *)
 let rec evalBig e = match e with
+  | USet (UTuple([])) -> USet(UEmpty)
   | USet (x) -> order (setify e)
   | UInSet (x) -> evalBig (get_nth (!sets, x-1))
   | UUnion (s1, s2) -> let v1 = evalBig s1 in
                        let v2 = evalBig s2 in
                         (match (v1,v2) with
-                          | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(union n m))
-                          | USet(UEmpty), USet(UTuple(m)) -> USet(UTuple(m))
-                          | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                          | USet(UTuple(n)), USet(UTuple(m)) -> evalBig (USet(UTuple(union n m)))
+                          | USet(UEmpty), USet(UTuple(m)) -> evalBig (USet(UTuple(m)))
+                          | USet(UTuple(n)), USet(UEmpty) -> evalBig (USet(UTuple(n)))
                           | _ -> raise InvalidSet)
 
   | UIntersect (s1, s2) -> let v1 = evalBig s1 in
                            let v2 = evalBig s2 in
                             (match (v1,v2) with
-                              | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(intersect n m))
-                              | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
-                              | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
+                              | USet(UTuple(n)), USet(UTuple(m)) -> evalBig (USet(UTuple(intersect n m)))
+                              | USet(UEmpty), USet(UTuple(m)) -> evalBig (USet(UEmpty))
+                              | USet(UTuple(n)), USet(UEmpty) -> evalBig (USet(UEmpty))
                               | _ -> raise InvalidSet)
 
   | UDifference (s1, s2) -> let v1 = evalBig s1 in
                             let v2 = evalBig s2 in
                               (match (v1,v2) with
-                                | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(difference n m))
-                                | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
-                                | USet(UTuple(n)), USet(UEmpty) -> USet(UTuple(n))
+                                | USet(UTuple(n)), USet(UTuple(m)) -> evalBig (USet(UTuple(difference n m)))
+                                | USet(UEmpty), USet(UTuple(m)) -> evalBig (USet(UEmpty))
+                                | USet(UTuple(n)), USet(UEmpty) -> evalBig (USet(UTuple(n)))
                                 | _ -> raise InvalidSet)
 
   | UConcatenation (s1, s2) -> let v1 = evalBig s1 in
                                let v2 = evalBig s2 in
                                 (match (v1,v2) with
-                                  | USet(UTuple(n)), USet(UTuple(m)) -> USet(UTuple(concatenation n m))
-                                  | USet(UEmpty), USet(UTuple(m)) -> USet(UEmpty)
-                                  | USet(UTuple(n)), USet(UEmpty) -> USet(UEmpty)
+                                  | USet(UTuple(n)), USet(UTuple(m)) -> evalBig (USet(UTuple(concatenation n m)))
+                                  | USet(UEmpty), USet(UTuple(m)) -> evalBig (USet(UEmpty))
+                                  | USet(UTuple(n)), USet(UEmpty) -> evalBig (USet(UEmpty))
                                   | _ -> raise InvalidSet)
 
-  | UKleene (x) -> kleene (evalBig x)
-  | UKleeneLimited (s, i) -> kleene_limit (evalBig s) i
+  | UKleene (x) -> evalBig (kleene (evalBig x))
+  | UKleeneLimited (s, i) -> evalBig (kleene_limit (evalBig s) i)
 ;;
 
 let rec eval e =
