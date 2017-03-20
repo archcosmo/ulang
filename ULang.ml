@@ -121,8 +121,17 @@ let rec difference l1 l2 =
   ;;
 
 
- (* let kleenestar l1 = ;;
- let complement l1 = ;; *)
+
+    let kleene s i =
+      let rec kleenestar acc l i =
+        match i with
+        |0 -> acc
+        |x -> kleenestar (union acc (concatenation acc l)) l (x-1)
+      in match s with
+        | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
+        | USet(UTuple(l)) -> USet(UTuple(kleenestar [UEmptyWord] l i))
+        | _ -> raise InvalidSet;;
+
 
  let setify e =
   let rec remove_duplicate = function
@@ -189,7 +198,7 @@ let rec difference l1 l2 =
                   | _ -> build_member (j-1) (String.concat "" [acc;(get_nth (s, ((m/(pow c j)) mod c)))])
                 in build_member (n-1) "";;
 
-  let kleene s =
+  (* let kleene s =
     let rec build_kleene l n acc =
       match n with
       | 0 -> acc
@@ -198,7 +207,7 @@ let rec difference l1 l2 =
     in match s with
     | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
     | USet(UTuple(x)) -> USet(UTuple(build_kleene (set_to_kleeneable x) 2000 []))
-    | _ -> raise InvalidSet;;
+    | _ -> raise InvalidSet;; *)
 
   let kleene_limit s i =
 
