@@ -120,10 +120,21 @@ let rec difference l1 l2 =
     | hd::tl -> List.append (prefix hd l2) (concatenation tl l2)
   ;;
 
+<<<<<<< HEAD
   let rec kleenestar acc l i =
     match i with
     |0 -> acc
     |x -> kleenestar (union acc (concatenation acc l)) l (x-1);;
+=======
+  let set_to_kleeneable s =
+    let rs = List.rev s in
+    let rec stk_rec s acc =
+      match s with
+      | [] -> acc
+      | UEmptyWord::tl -> stk_rec tl acc
+      | UMember(x)::tl -> stk_rec tl (x::acc)
+    in stk_rec rs [];;
+>>>>>>> 4208598d35906e0b5dc430deea634429b67af89d
 
     let kleene s i =
        match s with
@@ -131,6 +142,7 @@ let rec difference l1 l2 =
         | USet(UTuple(l)) -> USet(UTuple(kleenestar [UEmptyWord] l i))
         | _ -> raise InvalidSet;;
 
+<<<<<<< HEAD
 let limit_kleene s i =
   let length_limit l len =
     let pred s =
@@ -143,6 +155,23 @@ let limit_kleene s i =
     | USet(UTuple(l)) -> USet(UTuple(length_limit(kleenestar [UEmptyWord] l i)))
     | _ -> raise InvalidSet;;
 
+=======
+    let default_kleene s =
+      match s with
+        | USet(UEmpty) -> kleene s 1
+        | USet(UTuple(l)) -> (
+          let sanitated = set_to_kleeneable l in
+          let c = List.length sanitated in
+            match c with
+            | 1 -> kleene s 3000
+            | _ -> (
+              let fc = float_of_int c in
+              let n = int_of_float(floor ((log (1. -. 3000. +. (3000. *. fc))) /. (log fc))) in
+                kleene s n
+              )
+          )
+        | _ -> raise InvalidSet;;
+>>>>>>> 4208598d35906e0b5dc430deea634429b67af89d
 
  let setify e =
   let rec remove_duplicate = function
@@ -182,15 +211,6 @@ let limit_kleene s i =
     | USet(UEmpty)    -> s
     | _ -> raise InvalidSet;;
 
-  let set_to_kleeneable s =
-    let rs = List.rev s in
-    let rec stk_rec s acc =
-      match s with
-      | [] -> acc
-      | UEmptyWord::tl -> stk_rec tl acc
-      | UMember(x)::tl -> stk_rec tl (x::acc)
-    in stk_rec rs [];;
-
     let kleenefy s i =
       let c = List.length s in
         match c with
@@ -220,7 +240,7 @@ let limit_kleene s i =
     | USet(UTuple(x)) -> USet(UTuple(build_kleene (set_to_kleeneable x) 2000 []))
     | _ -> raise InvalidSet;; *)
 
-  let kleene_limit s i =
+  (* let kleene_limit s i =
 
     let rec build_kleene l n acc =
       match n with
@@ -236,7 +256,7 @@ let limit_kleene s i =
         | 1 -> USet(UTuple(build_kleene sanitated (i+1) []))
         | _ -> let count = ((1 - (pow c (i + 1))) / (1 - c)) in
           USet(UTuple(build_kleene sanitated count [])))
-    | _ -> raise InvalidSet;;
+    | _ -> raise InvalidSet;; *)
 
 (* Eval Function *)
 let rec evalBig e = match e with
@@ -275,8 +295,8 @@ let rec evalBig e = match e with
                                   | USet(UTuple(n)), USet(UEmpty) -> evalBig (USet(UEmpty))
                                   | _ -> raise InvalidSet)
 
-  | UKleene (x) -> evalBig (kleene (evalBig x))
-  | UKleeneLimited (s, i) -> evalBig (kleene_limit (evalBig s) i)
+  | UKleene (x) -> evalBig (default_kleene (evalBig x))
+  (* | UKleeneLimited (s, i) -> evalBig (kleene_limit (evalBig s) i) *)
 ;;
 
 let rec eval e =
