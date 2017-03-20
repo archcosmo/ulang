@@ -181,7 +181,7 @@ let rec difference l1 l2 =
                 in build_member (i) ""
         | _ -> let fc = float_of_int c in
                let fi = float_of_int i in
-               let n = (int_of_float (log (1. -. fi +. (fi *. fc)))) / (int_of_float (log fc)) in
+               let n = int_of_float(floor (((log (1. -. fi +. (fi *. fc))) /. (log fc)) +. min_float)) in
                let m = i - ((1-(pow c n)) / (1-c)) in
                 let rec build_member j acc =
                   match j with
