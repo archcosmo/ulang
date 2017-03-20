@@ -32,6 +32,8 @@ parser_main:
 parser_inputs:
   setlist INT NEWLINE EOF { ($1, $2) }
   | setlist INT EOF { ($1, $2) }
+  | INT EOF         { ([], $1) }
+  | INT NEWLINE EOF { ([], $1) }
 ;
 
 setlist:
