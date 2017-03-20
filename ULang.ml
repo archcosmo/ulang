@@ -120,12 +120,11 @@ let rec difference l1 l2 =
     | hd::tl -> List.append (prefix hd l2) (concatenation tl l2)
   ;;
 
-<<<<<<< HEAD
   let rec kleenestar acc l i =
     match i with
-    |0 -> acc
+    0 -> acc
     |x -> kleenestar (union acc (concatenation acc l)) l (x-1);;
-=======
+
   let set_to_kleeneable s =
     let rs = List.rev s in
     let rec stk_rec s acc =
@@ -134,7 +133,6 @@ let rec difference l1 l2 =
       | UEmptyWord::tl -> stk_rec tl acc
       | UMember(x)::tl -> stk_rec tl (x::acc)
     in stk_rec rs [];;
->>>>>>> 4208598d35906e0b5dc430deea634429b67af89d
 
     let kleene s i =
        match s with
@@ -142,7 +140,6 @@ let rec difference l1 l2 =
         | USet(UTuple(l)) -> USet(UTuple(kleenestar [UEmptyWord] l i))
         | _ -> raise InvalidSet;;
 
-<<<<<<< HEAD
 let limit_kleene s i =
   let length_limit l len =
     let pred s =
@@ -152,10 +149,9 @@ let limit_kleene s i =
     in List.filter pred l
   in match s with
     | USet(UEmpty) -> USet(UTuple([UEmptyWord]))
-    | USet(UTuple(l)) -> USet(UTuple(length_limit(kleenestar [UEmptyWord] l i)))
+    | USet(UTuple(l)) -> USet(UTuple(     length_limit (kleenestar [UEmptyWord] l i) i ))
     | _ -> raise InvalidSet;;
 
-=======
     let default_kleene s =
       match s with
         | USet(UEmpty) -> kleene s 1
@@ -171,7 +167,6 @@ let limit_kleene s i =
               )
           )
         | _ -> raise InvalidSet;;
->>>>>>> 4208598d35906e0b5dc430deea634429b67af89d
 
  let setify e =
   let rec remove_duplicate = function
@@ -296,7 +291,7 @@ let rec evalBig e = match e with
                                   | _ -> raise InvalidSet)
 
   | UKleene (x) -> evalBig (default_kleene (evalBig x))
-  (* | UKleeneLimited (s, i) -> evalBig (kleene_limit (evalBig s) i) *)
+  | UKleeneLimited (s, i) -> evalBig (limit_kleene (evalBig s) i)
 ;;
 
 let rec eval e =
