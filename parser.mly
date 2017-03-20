@@ -56,7 +56,6 @@ expr:
   | expr KLEENESTAR             { UKleene ($1) }
   | expr KLEENESTAR INT         { UKleeneLimited ($1, $3) }
   | expr DIFFERENCE expr        { UDifference ($1, $3) }
-  | expr COMPLEMENT             { UComplement ($1) }
 ;
 
 set:

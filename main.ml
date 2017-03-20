@@ -28,6 +28,13 @@ let parsedProg = parseProgram !arg in
 let parsedInputs = parseInputs !inputs in
 (* let () = print_string "Inputs Parsed" ; print_newline() in *)
 
+let rec typeCheck e =
+  match e with
+  | [] -> ()
+  | hd::tl -> typeOf hd; typeCheck tl in
+
+let () = typeCheck parsedProg in
+
 let () = ULang.evalInputs parsedInputs in
 let result = ULang.eval parsedProg in
 

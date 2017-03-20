@@ -1,10 +1,13 @@
 exception InvalidSet;;
 exception NonBaseTypeResult;;
+exception TypeError;;
 
 
 (* Types of the language *)
 type uMember =  UEmptyWord | UMember of string;;
 type uSet = UEmpty | UTuple of uMember list;;
+
+type uType = USET | UINT;;
 
 (* Grammar of the language *)
 type uTerm =
@@ -12,7 +15,6 @@ type uTerm =
   | UInSet of int
   | UUnion of uTerm * uTerm
   | UIntersect of uTerm * uTerm
-  | UComplement of uTerm
   | UDifference of uTerm * uTerm
   | UConcatenation of uTerm * uTerm
   | UKleene of uTerm
@@ -24,8 +26,34 @@ let (k : int ref) = ref 0;;
 
 
 (*Type checking function*)
-(* let rec typeOf e = match e with
-  USet () *)
+let rec typeOf e = match e with
+    USet (n) -> USET
+  | UInSet (b) -> USET
+  | UUnion (e1,e2) ->
+    ( match (typeOf e1) , (typeOf e2) with
+        USET, USET -> USET
+      | _ -> raise TypeError)
+  | UIntersect (e1,e2) ->
+    ( match (typeOf e1) , (typeOf e2) with
+        USET, USET -> USET
+      | _ -> raise TypeError)
+  | UDifference (e1,e2) ->
+    ( match (typeOf e1) , (typeOf e2) with
+      USET, USET -> USET
+      | _ -> raise TypeError)
+  | UConcatenation (e1,e2) ->
+    ( match (typeOf e1) , (typeOf e2) with
+      USET, USET -> USET
+      | _ -> raise TypeError)
+  | UKleene (e1) ->
+    ( match (typeOf e1) with
+      USET -> USET
+      | _ -> raise TypeError)
+  | UKleeneLimited (e1,e2) ->
+    ( match (typeOf e1) with
+      USET -> USET
+      | _ -> raise TypeError)
+  ;;
 
 let evalInputs inp =
   let rec addInSets = function
